@@ -1,0 +1,14 @@
+The application URLs are:
+  - L1 RPC: http://rpc.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - L1 Explorer: http://explorer.l1{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - L2 RPC: http://rpc.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - L2 Explorer: http://explorer.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+
+If you are running locally with minikube add the following to your /etc/hosts file:
+  - 127.0.0.1 rpc.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - 127.0.0.1 explorer.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - 127.0.0.1 rpc.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  - 127.0.0.1 explorer.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+
+and activate the tunnel via the following command:
+  - minikube tunnel

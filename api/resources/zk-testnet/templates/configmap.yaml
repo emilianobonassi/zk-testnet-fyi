@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-zk-configmap
+data:
+  l1-rpc: http://rpc.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  l1-explorer: http://explorer.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  l2-rpc: http://rpc.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+  l2-explorer: http://explorer.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}

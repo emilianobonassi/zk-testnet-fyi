@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: l1-{{ .Release.Name }}-ingress
+  labels:
+    {{- include "zk-testnet.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - host: explorer.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "l1-blockscout.fullname" index .Subcharts "l1-blockscout" }}
+                port:
+                  name: http
+    - host: rpc.l1.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "l1-geth.fullname" index .Subcharts "l1-geth" }}
+                port:
+                  name: http
+    - host: explorer.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "zk-blockscout.fullname" index .Subcharts "zk-blockscout" }}
+                port:
+                  name: http
+    - host: rpc.l2.{{ .Release.Name }}.{{ .Values.ingress.domain}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "zk-server.fullname" index .Subcharts "zk-server" }}
+                port:
+                  name: http

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "l1-blockscout.fullname" . }}
+  labels:
+    {{- include "l1-blockscout.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "l1-blockscout.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "l1-blockscout.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "l1-blockscout.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- range .Values.container.command }}
+              - {{ . | quote }}
+            {{- end }}
+          args:
+            {{- range .Values.container.args }}
+              - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env: 
+            - name: MICROSERVICE_SC_VERIFIER_URL
+              value: 'http://{{ .Release.Name }}-l1-smart-contract-verifier:8050/'
+            - name: MICROSERVICE_VISUALIZE_SOL2UML_URL
+              value: 'http://{{ .Release.Name }}-l1-visualizer:8050/'
+            - name: MICROSERVICE_SIG_PROVIDER_URL
+              value: 'http://{{ .Release.Name }}-l1-sig-provider:8050/'
+            - name: ACCOUNT_REDIS_URL
+              value: 'redis://{{ .Release.Name }}-l1-redis:6379'
+            - name: ETHEREUM_JSONRPC_TRACE_URL
+              value: 'http://{{ .Release.Name }}-l1-geth:8545/'
+            - name: ETHEREUM_JSONRPC_HTTP_URL
+              value: 'http://{{ .Release.Name }}-l1-geth:8545/'
+            - name: DATABASE_URL
+              value: 'postgresql://postgres:password@{{ .Release.Name }}-l1-postgresql:5432/blockscout?ssl=false'
+          {{- range $key, $val := .Values.environment }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
